@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Poke battle</title>
+    <link rel="stylesheet" href="pokemon_battle.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+    <script src="pokemon_battle.js"></script>
+    <script>
+      $(document).ready(function(){
+        $('#loading').hide()
+        $('.addplayer').submit(function(event){
+          $('.addplayer').hide()
+          $('#loading').show()
+          event.preventDefault();
+          var name = $('#name').val();
+          var player = playerConstructor(name);
+          var random = Math.floor(Math.random() * 50 + 1);
+          var url = 'http://pokeapi.co/api/v2/pokemon/' + random + '/';
+          game.addPlayer(player);
+          console.log(player);
+          this.reset();
+          $.get(url)
+            .done(function(data){
+            player.addCard(data);
+            console.log("player hand: ", player.hand)
+            document.getElementById('player').innerHTML = '';
+            for (var i = 0; i < game.players.length; i++){
+              $('#player').append(
+                "<div class='playerblock'><p>" + game.players[i].name + "</p><p>"
+                + "<h4>Click to draw card</h4></div>");
+              };
+            $('#loading').hide()
+            $('.addplayer').show()
+          });
+
+        $('body').on("click", ".playerblock", function(){
+          document.getElementById('player').innerHTML = '';
+          for (var i = 0; i < game.players.length; i++){
+            $('#player').append(
+              "<div class='playerblock'><p class='playername'>" + game.players[i].name + "</p><p>"
+               + game.players[i].hand[0].name + "</p><p><img src="
+               + game.players[i].hand[0].sprites.front_shiny + " alt=poke.png/></p><p>"
+               + game.players[i].hand[0].moves[0].move.name + "</p><p>"
+               + game.players[i].hand[0].moves[1].move.name + "</p><p>"
+               + game.players[i].hand[0].moves[2].move.name + "</p><p>"
+               + "<p></p></div>");
+            }; //end for loop - populates players and cards
+          $('#player').append("<p></p><p><button id='playnow'>Battle now!</button></p><p></p><p><button id='reload'>New game</button></p>")
+          });
+
+        $('#player').off("click").on("click", "#playnow", function(){
+          console.log("players", game.players)
+          names = document.getElementsByClassName('playername')
+          block = document.getElementsByClassName('playerblock')
+          console.log("player names from html ", names)
+          console.log("block items ", block)
+          winner = play(game.players)
+          console.log(game.players[winner])
+          block[winner].style.backgroundColor = 'red'
+          for (var i = 0; i < block.length; i++){
+            if (block[i] == block[winner]){
+              block[i].style.backgroundColor = 'blue'
+              block[i].style.color = 'White'
+            }
+            else {
+              block[i].style.backgroundColor = 'red'
+              block[i].style.color = 'black'
+            }
+          }
+          $('.addplayer').hide()
+          $('#current').hide()
+          $('#results').append("<h2><b>" + game.players[winner].name + " wins!!</b></h2>")
+        });
+
+        $('#player').on("click", "#reload", function(){
+          location.reload()
+        });
+      });
+    });
+    </script>
+  </head>
+
+  <body>
+    <h1>Pokemon battle</h1>
+
+    <form class='addplayer' action="/">
+      <input type="text" id='name'>
+      <input type="submit" value='add Player'>
+    </form>
+
+    <h3 id='loading'>adding player...</p></h3>
+
+    <div id="current"><h3>Current Players: </h3></div>
+
+    <div id="results"></div>
+    <div id="player"></div>
+    <div id="buttons"></div>
+
+
+  </body>
+</html>
